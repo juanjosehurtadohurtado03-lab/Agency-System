@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}{{ client.business_name }}{% endblock %}
+{% block header_title %}Ficha de Negocio Afiliado{% endblock %}
+
+{% block content %}
+<div class="space-y-6 max-w-5xl mx-auto">
+
+    {% if sent_access == 'ok' %}
+    <div class="bg-emerald-50 dark:bg-emerald-950/50 border-l-4 border-emerald-500 p-4 rounded-xl text-emerald-800 dark:text-emerald-300 text-sm flex items-center gap-3">
+        <svg class="w-5 h-5 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        <span>¡Credenciales enviadas al correo del cliente exitosamente!</span>
+    </div>
+    {% elif sent_access == 'warning' %}
+    <div class="bg-amber-50 dark:bg-amber-950/50 border-l-4 border-amber-500 p-4 rounded-xl text-amber-800 dark:text-amber-300 text-sm">
+        <strong>Aviso:</strong> {{ send_msg }} Puedes copiar el código manualmente a continuación y enviárselo por WhatsApp o chat.
+    </div>
+    {% elif sent_access == 'regenerated' %}
+    <div class="bg-blue-50 dark:bg-blue-950/50 border-l-4 border-blue-500 p-4 rounded-xl text-blue-800 dark:text-blue-300 text-sm">
+        <strong>Código actualizado:</strong> Se generó un nuevo código de acceso especial para el cliente.
+    </div>
+    {% endif %}
+
+    <!-- CABECERA DE CLIENTE Y ACCIONES -->
+    <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <div class="flex items-center gap-3">
+                <h1 class="text-2xl font-bold text-slate-900">{{ client.business_name }}</h1>
+                {% if client.status == 'activo' %}
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">Activo</span>
+                {% elif client.status == 'pausado' %}
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">Pausado</span>
+                {% else %}
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-800">Inactivo</span>
+                {% endif %}
+            </div>
+            <p class="text-sm text-slate-500 mt-1">
+                Contacto: <strong>{{ client.contact_name }}</strong> &bull; Correo: {{ client.email }}
+            </p>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <a href="/reportes/crear?client_id={{ client.id }}" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg text-xs transition shadow flex items-center gap-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                Generar Reporte
+            </a>
+
+            {% if current_user.is_admin %}
+            <a href="/clientes/{{ client.id }}/editar" class="border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium px-3.5 py-2 rounded-lg text-xs transition">
+                Editar
+            </a>
+            <form action="/clientes/{{ client.id }}/toggle-status" method="POST" class="inline">
+                <button type="submit" class="border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium px-3.5 py-2 rounded-lg text-xs transition">
+                    {{ 'Pausar' if client.status == 'activo' else 'Reanudar' }}
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- DATOS CLAVE EN GRID -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <span class="text-xs font-semibold text-slate-400 uppercase">Cuota Acordada</span>
+            <p class="text-2xl font-bold text-slate-900 mt-1">${{ "{:,.2f}".format(client.monthly_fee) }} <span class="text-xs text-slate-500 font-normal">/mes</span></p>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <span class="text-xs font-semibold text-slate-400 uppercase">Gestor Asignado</span>
+            <p class="text-base font-semibold text-slate-800 mt-1">
+                {{ client.assigned_employee.name if client.assigned_employee else 'Sin empleado asignado' }}
+            </p>
+            <p class="text-xs text-slate-400">{{ client.assigned_employee.email if client.assigned_employee else 'Atendido por la dirección' }}</p>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <span class="text-xs font-semibold text-slate-400 uppercase">Teléfono de Enlace</span>
+            <p class="text-base font-semibold text-slate-800 mt-1">
+                {{ client.phone or 'No registrado' }}
+            </p>
+            <p class="text-xs text-slate-400">Canal directo para notificaciones</p>
+        </div>
+    </div>
+
+    <!-- TARJETA DE CREDENCIALES DEL PORTAL DEL CLIENTE -->
+    <div class="bg-gradient-to-r from-blue-900 to-indigo-900 rounded-xl p-6 text-white shadow-sm border border-blue-800">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+                <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-500/20 text-blue-200 border border-blue-400/30 mb-2">
+                    🔑 Acceso al Portal del Cliente
+                </span>
+                <h3 class="text-lg font-bold">Credenciales de Inicio de Sesión para {{ client.business_name }}</h3>
+                <p class="text-xs text-blue-200 mt-1">
+                    El cliente puede ingresar a su portal exclusivo para consultar sus reportes en vivo.
+                </p>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <form action="/clientes/{{ client.id }}/enviar-acceso" method="POST" class="inline">
+                    <button type="submit" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-4 py-2 rounded-lg text-xs transition shadow flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                        Enviar por Correo
+                    </button>
+                </form>
+
+                <form action="/clientes/{{ client.id }}/regenerar-codigo" method="POST" class="inline" onsubmit="return confirm('¿Regenerar nuevo código? El anterior dejará de funcionar.');">
+                    <button type="submit" class="bg-blue-800 hover:bg-blue-700 text-blue-100 font-semibold px-3 py-2 rounded-lg text-xs transition border border-blue-600">
+                        Regenerar
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3 bg-blue-950/60 p-4 rounded-lg border border-blue-800/60 text-xs">
+            <div>
+                <span class="text-blue-300 block text-[11px] uppercase font-semibold">Usuario de Portal</span>
+                <code class="text-sm font-bold text-white bg-blue-900/50 px-2 py-0.5 rounded">{{ client.portal_username or client.email }}</code>
+            </div>
+            <div>
+                <span class="text-blue-300 block text-[11px] uppercase font-semibold">Código Especial de Acceso</span>
+                <span class="text-base font-extrabold text-amber-300 tracking-wider">{{ client.portal_code or 'Sin generar' }}</span>
+            </div>
+            <div>
+                <span class="text-blue-300 block text-[11px] uppercase font-semibold">URL de Acceso Directo</span>
+                <a href="/portal/login" target="_blank" class="text-xs text-blue-300 hover:text-white underline font-semibold">/portal/login &rarr;</a>
+            </div>
+        </div>
+    </div>
+
+    {% if client.notes %}
+    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+        <h3 class="text-xs font-bold text-slate-700 uppercase mb-1">Notas y Acuerdos Especiales</h3>
+        <p class="text-sm text-slate-600 whitespace-pre-line">{{ client.notes }}</p>
+    </div>
+    {% endif %}
+
+    <!-- REPORTES ASOCIADOS -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+            <h3 class="text-base font-bold text-slate-900">Historial de Reportes del Cliente</h3>
+            <span class="text-xs text-slate-400">{{ client.reports|length }} reportes registrados</span>
+        </div>
+        <div class="divide-y divide-slate-100">
+            {% if client.reports %}
+                {% for rep in client.reports %}
+                <div class="p-4 flex items-center justify-between hover:bg-slate-50 transition">
+                    <div>
+                        <a href="/reportes/{{ rep.id }}" class="font-semibold text-slate-900 hover:text-blue-600 text-sm">
+                            {{ rep.title }}
+                        </a>
+                        <p class="text-xs text-slate-400">Período: {{ rep.period_month }}/{{ rep.period_year }} &bull; Creado: {{ rep.created_at.strftime('%d/%m/%Y') if rep.created_at else '' }}</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-medium {{ 'bg-emerald-100 text-emerald-800' if rep.status in ('enviado', 'entregado') else 'bg-slate-100 text-slate-700' }}">
+                            {{ rep.status.upper() }}
+                        </span>
+                        <a href="/reportes/{{ rep.id }}" class="text-xs text-blue-600 font-semibold hover:underline">Ver Detalle</a>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="p-8 text-center text-slate-400 text-sm">
+                    No se han generado reportes para este cliente todavía.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+

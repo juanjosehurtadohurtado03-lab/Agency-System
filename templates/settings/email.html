@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}Integraciones de Envíos{% endblock %}
+{% block header_title %}Configuración de Integraciones (SMTP / SendGrid / Webhooks){% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+
+    {% if success %}
+    <div class="bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded-xl text-emerald-800 text-sm flex items-center gap-3">
+        <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        <span class="font-medium">Configuración de integración guardada y cifrada correctamente.</span>
+    </div>
+    {% endif %}
+
+    {% if test_result %}
+        {% if test_result == 'ok' %}
+        <div class="bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded-xl text-emerald-800 text-sm flex items-center gap-3">
+            <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            <span class="font-medium">¡Prueba exitosa! El mensaje de test se envió y entregó correctamente.</span>
+        </div>
+        {% else %}
+        <div class="bg-rose-50 border-l-4 border-rose-500 p-4 rounded-xl text-rose-800 text-sm flex items-center gap-3">
+            <svg class="w-5 h-5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span class="font-medium">Fallo en la prueba: {{ test_result }}</span>
+        </div>
+        {% endif %}
+    {% endif %}
+
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 md:p-8">
+        <h2 class="text-lg font-bold text-slate-900 mb-1">Servidor de Salida para Automatizaciones</h2>
+        <p class="text-xs text-slate-500 mb-6">
+            Conecta tus credenciales para que los reportes se envíen con un clic o automáticamente a los clientes.
+        </p>
+
+        <form action="/configuracion/email" method="POST" class="space-y-6">
+
+            <!-- SELECCIÓN DEL PROVEEDOR -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 uppercase mb-2">Canal de Envío Principal</label>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <label class="border border-slate-200 rounded-xl p-3 flex items-center gap-3 cursor-pointer hover:bg-slate-50 transition">
+                        <input type="radio" name="provider" value="smtp" {% if config.provider == 'smtp' %}checked{% endif %}
+                            class="text-blue-600 focus:ring-blue-500">
+                        <div>
+                            <div class="text-sm font-bold text-slate-800">Servidor SMTP</div>
+                            <div class="text-[11px] text-slate-400">Gmail, Zoho, SES, Hostinger</div>
+                        </div>
+                    </label>
+
+                    <label class="border border-slate-200 rounded-xl p-3 flex items-center gap-3 cursor-pointer hover:bg-slate-50 transition">
+                        <input type="radio" name="provider" value="sendgrid" {% if config.provider == 'sendgrid' %}checked{% endif %}
+                            class="text-blue-600 focus:ring-blue-500">
+                        <div>
+                            <div class="text-sm font-bold text-slate-800">API SendGrid</div>
+                            <div class="text-[11px] text-slate-400">Entrega vía Web API v3</div>
+                        </div>
+                    </label>
+
+                    <label class="border border-slate-200 rounded-xl p-3 flex items-center gap-3 cursor-pointer hover:bg-slate-50 transition">
+                        <input type="radio" name="provider" value="webhook" {% if config.provider == 'webhook' %}checked{% endif %}
+                            class="text-blue-600 focus:ring-blue-500">
+                        <div>
+                            <div class="text-sm font-bold text-slate-800">Webhooks</div>
+                            <div class="text-[11px] text-slate-400">Zapier, Make, n8n</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- CAMPOS SMTP -->
+            <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-4">
+                <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Parámetros SMTP</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Host SMTP</label>
+                        <input type="text" name="smtp_host" value="{{ config.smtp_host or '' }}" placeholder="smtp.gmail.com"
+                            class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Puerto</label>
+                        <input type="number" name="smtp_port" value="{{ config.smtp_port or 587 }}"
+                            class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Usuario / Email SMTP</label>
+                        <input type="text" name="smtp_username" value="{{ config.smtp_username or '' }}" placeholder="reportes@agencia.com"
+                            class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">
+                            Contraseña de Aplicación {{ '(Guardada y Cifrada)' if has_smtp_password else '' }}
+                        </label>
+                        <input type="password" name="smtp_password" placeholder="{{ '••••••••••••' if has_smtp_password else 'Clave de paso o app password' }}"
+                            class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+            </div>
+
+            <!-- CAMPOS SENDGRID -->
+            <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-3">
+                <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Parámetros SendGrid API</h4>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">
+                        API Key de SendGrid {{ '(Almacenada con Cifrado AES)' if has_sendgrid_key else '' }}
+                    </label>
+                    <input type="password" name="sendgrid_api_key" placeholder="{{ 'SG.••••••••••••' if has_sendgrid_key else 'SG.xxxxxx...' }}"
+                        class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500 font-mono">
+                </div>
+            </div>
+
+            <!-- CAMPOS WEBHOOK -->
+            <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-3">
+                <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Endpoint Webhook (Automatizaciones)</h4>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">URL de Webhook (POST)</label>
+                    <input type="url" name="webhook_url" value="{{ config.webhook_url or '' }}" placeholder="https://hook.us1.make.com/xxxxxx"
+                        class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+
+            <!-- REMITENTE VISIBLE -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Nombre del Remitente</label>
+                    <input type="text" name="from_name" value="{{ config.from_name or '' }}" placeholder="Agencia Digital"
+                        class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Correo Remitente Visible</label>
+                    <input type="email" name="from_email" value="{{ config.from_email or '' }}" placeholder="notificaciones@agencia.com"
+                        class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+
+            <!-- ACTIVACIÓN -->
+            <div class="p-4 bg-blue-50/50 dark:bg-slate-800/60 rounded-xl border border-blue-100 dark:border-slate-700 flex items-center justify-between">
+                <div>
+                    <span class="text-sm font-bold text-slate-900 dark:text-white block">Activar Integración de Envíos</span>
+                    <span class="text-xs text-slate-500 dark:text-slate-400">Al estar activa, los reportes se enviarán inmediatamente al presionar 'Enviar'.</span>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="is_active" value="true" {% if config.is_active %}checked{% endif %} class="sr-only peer">
+                    <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+            </div>
+
+            <!-- BOTÓN GUARDAR -->
+            <div class="flex justify-end pt-2">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2.5 rounded-lg text-sm transition shadow">
+                    Guardar Integraciones
+                </button>
+            </div>
+
+        </form>
+    </div>
+
+    <!-- ZONA DE PRUEBA DE CONEXIÓN -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <h3 class="text-sm font-bold text-slate-900 mb-1">Probar Envío en Vivo</h3>
+        <p class="text-xs text-slate-500 mb-4">
+            Envía un correo de comprobación para validar que las credenciales funcionen sin errores.
+        </p>
+
+        <form action="/configuracion/email/test" method="POST" class="flex gap-3 max-w-md">
+            <input type="email" name="test_target_email" required placeholder="tu-correo-personal@gmail.com"
+                class="flex-1 px-3.5 py-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500">
+            <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white font-semibold px-4 py-2 rounded-lg text-xs transition shadow-sm whitespace-nowrap">
+                🚀 Enviar Prueba
+            </button>
+        </form>
+    </div>
+
+</div>
+{% endblock %}
+

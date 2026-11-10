@@ -1,0 +1,57 @@
+# ==============================================================================
+# ARCHIVO .gitignore PARA EL SISTEMA SAAS DE AGENCIA
+# Protege archivos sensibles, credenciales, bases de datos y entornos locales.
+# ==============================================================================
+
+# 1. Variables de Entorno y Secretos Críticos (NUNCA SUBIR A GIT)
+.env
+.env.*
+!.env.example
+
+# 2. Base de Datos SQLite y Archivos de Instancia Local
+instance/
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+CLAVE_INICIAL_ADMIN.txt
+*.txt
+
+# 3. Entorno Virtual de Python (Bibliotecas instaladas)
+venv/
+.venv/
+env/
+ENV/
+lib/
+lib64/
+bin/
+include/
+
+# 4. Archivos Temporales y Bytecode de Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# 5. Archivos Subidos por Clientes y Reportes Confidenciales
+static/uploads/logos/*
+!static/uploads/logos/.gitkeep
+static/uploads/reports/*
+!static/uploads/reports/.gitkeep
+
+# 6. Configuraciones de Editores e IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# 7. Archivos del Sistema Operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+

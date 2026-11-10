@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Crear Reporte{% endblock %}
+{% block header_title %}Generador de Reportes de Agencia{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 md:p-8">
+        <h2 class="text-lg font-bold text-slate-900 mb-1">
+            Nuevo Reporte Oficial de Desempeño
+        </h2>
+        <p class="text-xs text-slate-500 mb-6">
+            El sistema compilará este reporte aplicando automáticamente el logo, paleta de colores y encabezados de tu agencia.
+        </p>
+
+        <form action="/reportes/crear" method="POST" class="space-y-5">
+
+            <!-- SELECCIÓN DE CLIENTE -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Negocio Afiliado Destinatario</label>
+                <select name="client_id" required class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500 bg-white">
+                    <option value="">-- Selecciona el cliente --</option>
+                    {% for cl in clients %}
+                    <option value="{{ cl.id }}" {% if selected_client_id and selected_client_id == cl.id %}selected{% endif %}>
+                        {{ cl.business_name }} ({{ cl.contact_name }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- TÍTULO DEL REPORTE -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Título del Reporte</label>
+                <input type="text" name="title" required value="Reporte Mensual de Rendimiento"
+                    placeholder="Ej: Reporte de Campañas Digitales y Leads"
+                    class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <!-- PERÍODO (MES Y AÑO) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Mes del Período</label>
+                    <select name="period_month" required class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500 bg-white">
+                        <option value="1" {% if current_month == 1 %}selected{% endif %}>Enero</option>
+                        <option value="2" {% if current_month == 2 %}selected{% endif %}>Febrero</option>
+                        <option value="3" {% if current_month == 3 %}selected{% endif %}>Marzo</option>
+                        <option value="4" {% if current_month == 4 %}selected{% endif %}>Abril</option>
+                        <option value="5" {% if current_month == 5 %}selected{% endif %}>Mayo</option>
+                        <option value="6" {% if current_month == 6 %}selected{% endif %}>Junio</option>
+                        <option value="7" {% if current_month == 7 %}selected{% endif %}>Julio</option>
+                        <option value="8" {% if current_month == 8 %}selected{% endif %}>Agosto</option>
+                        <option value="9" {% if current_month == 9 %}selected{% endif %}>Septiembre</option>
+                        <option value="10" {% if current_month == 10 %}selected{% endif %}>Octubre</option>
+                        <option value="11" {% if current_month == 11 %}selected{% endif %}>Noviembre</option>
+                        <option value="12" {% if current_month == 12 %}selected{% endif %}>Diciembre</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Año</label>
+                    <input type="number" name="period_year" required value="{{ current_year }}" min="2020" max="2035"
+                        class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+
+            <!-- DESCRIPCIÓN Y RESUMEN EJECUTIVO -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Resumen Ejecutivo y Métricas de Desempeño</label>
+                <textarea name="description" rows="7" placeholder="Escribe aquí los resultados logrados para el cliente:
+- Leads conseguidos: 45
+- Tasa de conversión: 3.4%
+- Retorno de inversión (ROAS): 4.1x
+- Acciones recomendadas para el próximo ciclo..."
+                    class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500 font-mono"></textarea>
+                <p class="text-[11px] text-slate-400 mt-1">Este texto se integrará en el cuerpo del documento con diseño corporativo.</p>
+            </div>
+
+            <!-- BOTONES -->
+            <div class="pt-4 flex items-center justify-end gap-3 border-t border-slate-100">
+                <a href="/reportes" class="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 text-sm font-medium hover:bg-slate-50 transition">
+                    Cancelar
+                </a>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2 rounded-lg transition shadow flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                    Compilar Documento con Branding
+                </button>
+            </div>
+
+        </form>
+    </div>
+
+</div>
+{% endblock %}
+

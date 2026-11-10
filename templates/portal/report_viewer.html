@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ report.title }} - {{ brand.agency_name }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' };
+        if (localStorage.getItem('agency_theme') === 'dark' || (!('agency_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+    <style>
+        :root {
+            --primary: {{ brand.primary_color or '#1E40AF' }};
+            --secondary: {{ brand.secondary_color or '#3B82F6' }};
+            --accent: {{ brand.accent_color or '#10B981' }};
+        }
+        .bg-agency-primary { background-color: var(--primary); }
+        .text-agency-primary { color: var(--primary); }
+        .from-agency-primary { --tw-gradient-from: var(--primary); }
+        .to-agency-secondary { --tw-gradient-to: var(--secondary); }
+        .text-agency-accent { color: var(--accent); }
+
+        /* --- Tema CLARO (por defecto) --- */
+        body { background-color: #f1f5f9; color: #1e293b; }
+        .surface { background-color: #ffffff; border-color: #e2e8f0; }
+        .surface-alt { background-color: #f8fafc; border-color: #e2e8f0; }
+        .concept-title { color: #0f172a; }
+        .concept-muted { color: #64748b; }
+
+        /* --- Tema OSCURO --- */
+        html.dark body { background-color: #0b0f19; color: #e2e8f0; }
+        html.dark .surface { background-color: #111827; border-color: #1e293b; }
+        html.dark .surface-alt { background-color: #0f172a; border-color: #1e293b; }
+        html.dark .concept-title { color: #f1f5f9; }
+        html.dark .concept-muted { color: #94a3b8; }
+    </style>
+</head>
+<body class="h-full font-sans">
+
+    <!-- BARRA SUPERIOR -->
+    <header class="surface h-16 border-b flex items-center justify-between px-6 sticky top-0 z-10">
+        <a href="/portal" class="flex items-center gap-2 text-sm font-semibold concept-muted hover:text-agency-primary transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            Volver a mis reportes
+        </a>
+        <div class="flex items-center gap-3">
+            {% if brand.logo_path %}
+                <img src="/{{ brand.logo_path }}" alt="{{ brand.agency_name }}" class="max-h-8 max-w-[140px] object-contain">
+            {% else %}
+                <span class="concept-title font-bold text-sm">{{ brand.agency_name }}</span>
+            {% endif %}
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto p-6 md:p-8 space-y-6">
+
+        <!-- CABECERA DEL REPORTE -->
+        <div class="surface rounded-xl border p-6 shadow-sm">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <div class="flex items-center gap-3">
+                        <h1 class="concept-title text-xl font-bold">{{ report.title }}</h1>
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                            {{ report.status.upper() }}
+                        </span>
+                    </div>
+                    <p class="concept-muted text-xs mt-1">
+                        Período: {{ report.period_month }}/{{ report.period_year }}
+                        {% if report.employee %}&bull; Elaborado por: {{ report.employee.name }}{% endif %}
+                    </p>
+                </div>
+                {% if report.file_path %}
+                <a href="/{{ report.file_path }}" target="_blank"
+                    class="bg-agency-primary hover:opacity-90 text-white font-semibold px-4 py-2 rounded-lg text-xs transition shadow flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                    Abrir / Descargar PDF
+                </a>
+                {% endif %}
+            </div>
+
+            {% if report.description %}
+            <div class="mt-4 surface-alt rounded-lg border p-4">
+                <h3 class="concept-title text-xs font-bold uppercase mb-1">Resumen Ejecutivo</h3>
+                <p class="concept-muted text-sm whitespace-pre-line">{{ report.description }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- PREVISUALIZACIÓN DEL DOCUMENTO -->
+        <div class="surface rounded-xl border shadow-sm overflow-hidden">
+            <div class="surface-alt px-4 py-2 border-b text-xs font-semibold concept-title flex items-center justify-between">
+                <span>Documento del Reporte</span>
+                <span class="concept-muted text-[11px]">Formato A4 &bull; Confidencial</span>
+            </div>
+            <div class="p-2 surface-alt">
+                {% if report.file_path %}
+                <iframe src="/{{ report.file_path }}" class="w-full h-[720px] rounded border border-slate-200 bg-white" title="Vista del reporte"></iframe>
+                {% else %}
+                <div class="p-16 text-center concept-muted">
+                    El archivo de este reporte aún no está disponible. Contacta a tu gestor.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <p class="text-center concept-muted text-[11px] pt-2">
+            Documento confidencial emitido por {{ brand.agency_name }}
+        </p>
+    </main>
+
+</body>
+</html>

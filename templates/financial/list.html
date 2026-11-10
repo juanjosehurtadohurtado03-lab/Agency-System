@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Finanzas y P&L{% endblock %}
+{% block header_title %}Control de Ganancias y Pérdidas (P&L){% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- RESUMEN DE SALDOS -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-emerald-500">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Ingresos</span>
+            <p class="text-3xl font-extrabold text-emerald-600 mt-2">${{ "{:,.2f}".format(total_ingresos) }}</p>
+            <p class="text-xs text-slate-400 mt-1">Cobros de cuotas y servicios de agencia</p>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-rose-500">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Gastos Operativos</span>
+            <p class="text-3xl font-extrabold text-rose-600 mt-2">${{ "{:,.2f}".format(total_gastos) }}</p>
+            <p class="text-xs text-slate-400 mt-1">Servidores, nómina, software y pauta</p>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm border-l-4 {{ 'border-l-indigo-600' if balance_neto >= 0 else 'border-l-rose-600' }}">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Balance Neto (Rentabilidad)</span>
+            <p class="text-3xl font-extrabold {{ 'text-indigo-600' if balance_neto >= 0 else 'text-rose-600' }} mt-2">
+                ${{ "{:,.2f}".format(balance_neto) }}
+            </p>
+            <p class="text-xs text-slate-400 mt-1">Beneficio operativo neto acumulado</p>
+        </div>
+    </div>
+
+    <!-- REGISTRAR NUEVO MOVIMIENTO -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <h3 class="text-base font-bold text-slate-900 mb-1">Registrar Movimiento Financiero</h3>
+        <p class="text-xs text-slate-500 mb-5">Ingresa ingresos de clientes o egresos de la agencia para mantener el P&L al día.</p>
+
+        <form action="/finanzas/crear" method="POST" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 items-end">
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Tipo</label>
+                <select name="type" required class="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 bg-white">
+                    <option value="ingreso">🟢 Ingreso</option>
+                    <option value="gasto">🔴 Gasto</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Monto (USD)</label>
+                <input type="number" step="0.01" name="amount" required placeholder="150.00"
+                    class="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div class="lg:col-span-2">
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Concepto / Descripción</label>
+                <input type="text" name="description" required placeholder="Pago mensual de servicio SEO"
+                    class="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Cliente (Opcional)</label>
+                <select name="client_id" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 bg-white">
+                    <option value="">-- General --</option>
+                    {% for c in clients %}
+                    <option value="{{ c.id }}">{{ c.business_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-3 rounded-lg text-xs transition shadow-sm">
+                    + Registrar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- LISTADO DE TRANSACCIONES -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+            <h3 class="text-sm font-bold text-slate-900">Historial de Transacciones Contables</h3>
+            <span class="text-xs text-slate-400">{{ records|length }} movimientos registrados</span>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200 text-xs uppercase font-semibold text-slate-500">
+                        <th class="py-3 px-4">Fecha</th>
+                        <th class="py-3 px-4">Tipo</th>
+                        <th class="py-3 px-4">Descripción</th>
+                        <th class="py-3 px-4">Cliente Vinculado</th>
+                        <th class="py-3 px-4 text-right">Monto</th>
+                        <th class="py-3 px-4 text-right">Acción</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% if records %}
+                        {% for r in records %}
+                        <tr class="hover:bg-slate-50/80 transition">
+                            <td class="py-3 px-4 text-xs text-slate-500">
+                                {{ r.record_date.strftime('%d/%m/%Y') }}
+                            </td>
+                            <td class="py-3 px-4">
+                                <span class="px-2 py-0.5 rounded text-xs font-semibold {{ 'bg-emerald-100 text-emerald-800' if r.type == 'ingreso' else 'bg-rose-100 text-rose-800' }}">
+                                    {{ r.type.upper() }}
+                                </span>
+                            </td>
+                            <td class="py-3 px-4 font-medium text-slate-800">
+                                {{ r.description }}
+                            </td>
+                            <td class="py-3 px-4 text-xs text-slate-500">
+                                {{ r.client.business_name if r.client else '-' }}
+                            </td>
+                            <td class="py-3 px-4 text-right font-bold {{ 'text-emerald-600' if r.type == 'ingreso' else 'text-rose-600' }}">
+                                {{ '+' if r.type == 'ingreso' else '-' }}${{ "{:,.2f}".format(r.amount) }}
+                            </td>
+                            <td class="py-3 px-4 text-right">
+                                <form action="/finanzas/{{ r.id }}/eliminar" method="POST" class="inline" onsubmit="return confirm('¿Eliminar este movimiento?');">
+                                    <button type="submit" class="text-rose-500 hover:text-rose-700 text-xs">
+                                        &times;
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="py-12 text-center text-slate-400">
+                                No hay transacciones registradas. Utiliza el formulario superior para registrar ingresos o egresos.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+

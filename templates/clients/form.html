@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Editar Negocio' if client else 'Afiliar Nuevo Negocio' }}{% endblock %}
+{% block header_title %}{{ 'Editar Negocio Afiliado' if client else 'Afiliar Nuevo Negocio' }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 md:p-8">
+        <h2 class="text-lg font-bold text-slate-900 mb-1">
+            {{ 'Modificar Datos de ' + client.business_name if client else 'Registro de Negocio Afiliado' }}
+        </h2>
+        <p class="text-xs text-slate-500 mb-6">
+            Ingresa la información comercial y asigna el empleado responsable de su atención.
+        </p>
+
+        <form action="{{ '/clientes/' + client.id|string + '/editar' if client else '/clientes/crear' }}" method="POST" class="space-y-5">
+
+            <!-- NOMBRE COMERCIAL -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Nombre Comercial del Negocio</label>
+                <input type="text" name="business_name" required value="{{ client.business_name if client else '' }}"
+                    placeholder="Ej: Clínica Dental San Lucas"
+                    class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <!-- CONTACTO Y CORREO -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Persona de Contacto</label>
+                    <input type="text" name="contact_name" required value="{{ client.contact_name if client else '' }}"
+                        placeholder="Ej: Carlos Mendoza"
+                        class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Correo para Reportes</label>
+                    <input type="email" name="email" required value="{{ client.email if client else '' }}"
+                        placeholder="contacto@empresa.com"
+                        class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+
+            <!-- TELÉFONO Y CUOTA MENSUAL -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Teléfono / WhatsApp</label>
+                    <input type="text" name="phone" value="{{ client.phone if client and client.phone else '' }}"
+                        placeholder="+58 412 1234567"
+                        class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Cuota Mensual (USD)</label>
+                    <input type="number" step="0.01" name="monthly_fee" required value="{{ client.monthly_fee if client else '0.00' }}"
+                        class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+
+            <!-- ASIGNACIÓN ESPECÍFICA DE EMPLEADO -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">
+                    Empleado Asignado (Gestor Exclusivo)
+                </label>
+                <select name="assigned_employee_id" class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500 bg-white">
+                    <option value="">-- Sin asignar (Gestionado por Dueño/General) --</option>
+                    {% for emp in employees %}
+                    <option value="{{ emp.id }}" {% if client and client.assigned_employee_id == emp.id %}selected{% endif %}>
+                        {{ emp.name }} ({{ emp.email }})
+                    </option>
+                    {% endfor %}
+                </select>
+                <p class="text-[11px] text-slate-400 mt-1">
+                    🔒 El empleado seleccionado será el único miembro del equipo con acceso a este cliente.
+                </p>
+            </div>
+
+            {% if client %}
+            <!-- ESTADO (EN MODO EDICIÓN) -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Estado de Afiliación</label>
+                <select name="status" class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500 bg-white">
+                    <option value="activo" {% if client.status == 'activo' %}selected{% endif %}>Activo (Servicio regular)</option>
+                    <option value="pausado" {% if client.status == 'pausado' %}selected{% endif %}>Pausado (Servicio suspendido)</option>
+                    <option value="inactivo" {% if client.status == 'inactivo' %}selected{% endif %}>Inactivo (Baja)</option>
+                </select>
+            </div>
+            {% endif %}
+
+            <!-- NOTAS INTERNAS -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Notas Internas o Acuerdos</label>
+                <textarea name="notes" rows="3" placeholder="Detalles de los servicios pactados, enlaces a carpetas de Drive, etc."
+                    class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500">{{ client.notes if client and client.notes else '' }}</textarea>
+            </div>
+
+            <!-- BOTONES -->
+            <div class="pt-4 flex items-center justify-end gap-3 border-t border-slate-100">
+                <a href="/clientes" class="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 text-sm font-medium hover:bg-slate-50 transition">
+                    Cancelar
+                </a>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2 rounded-lg transition shadow">
+                    {{ 'Guardar Cambios' if client else 'Afiliar Negocio' }}
+                </button>
+            </div>
+
+        </form>
+    </div>
+
+</div>
+{% endblock %}
+

@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Reportes de Desempeño{% endblock %}
+{% block header_title %}Reportes y Entregables{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+            <h2 class="text-xl font-bold text-slate-900">Historial de Reportes</h2>
+            <p class="text-sm text-slate-500">
+                Informes mensuales generados con la marca y colores de la agencia para los clientes.
+            </p>
+        </div>
+
+        <a href="/reportes/crear" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg text-sm transition shadow flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Crear Nuevo Reporte
+        </a>
+    </div>
+
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200 text-xs uppercase font-semibold text-slate-500">
+                        <th class="py-3.5 px-4">Título del Reporte</th>
+                        <th class="py-3.5 px-4">Cliente Afiliado</th>
+                        <th class="py-3.5 px-4">Período</th>
+                        <th class="py-3.5 px-4">Estado</th>
+                        <th class="py-3.5 px-4">Fecha de Envío</th>
+                        <th class="py-3.5 px-4 text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% if reports %}
+                        {% for rep in reports %}
+                        <tr class="hover:bg-slate-50/80 transition">
+                            <td class="py-4 px-4 font-semibold text-slate-900">
+                                <a href="/reportes/{{ rep.id }}" class="hover:text-blue-600">
+                                    {{ rep.title }}
+                                </a>
+                            </td>
+                            <td class="py-4 px-4 text-slate-600">
+                                {{ rep.client.business_name if rep.client else 'Sin cliente' }}
+                            </td>
+                            <td class="py-4 px-4 text-slate-600 font-medium">
+                                {{ rep.period_month }}/{{ rep.period_year }}
+                            </td>
+                            <td class="py-4 px-4">
+                                {% if rep.status in ('enviado', 'entregado') %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                                        Enviado
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
+                                        Borrador
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="py-4 px-4 text-xs text-slate-400">
+                                {{ rep.sent_at.strftime('%d/%m/%Y %H:%M') if rep.sent_at else 'Pendiente de envío' }}
+                            </td>
+                            <td class="py-4 px-4 text-right space-x-2">
+                                <a href="/reportes/{{ rep.id }}" class="text-blue-600 hover:text-blue-800 text-xs font-semibold">
+                                    Ver Documento
+                                </a>
+                                {% if current_user.is_admin %}
+                                <form action="/reportes/{{ rep.id }}/eliminar" method="POST" class="inline" onsubmit="return confirm('¿Seguro que deseas eliminar este reporte?');">
+                                    <button type="submit" class="text-rose-600 hover:text-rose-800 text-xs font-semibold">
+                                        Eliminar
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="py-12 text-center text-slate-400">
+                                No se han registrado reportes todavía.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+

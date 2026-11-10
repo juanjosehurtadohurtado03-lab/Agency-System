@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Portal - {{ client.business_name }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' };
+        if (localStorage.getItem('agency_theme') === 'dark' || (!('agency_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+    <style>
+        :root {
+            --primary: {{ brand.primary_color or '#1E40AF' }};
+            --secondary: {{ brand.secondary_color or '#3B82F6' }};
+            --accent: {{ brand.accent_color or '#10B981' }};
+        }
+        .bg-agency-primary { background-color: var(--primary); }
+        .text-agency-primary { color: var(--primary); }
+        .from-agency-primary { --tw-gradient-from: var(--primary); }
+        .to-agency-secondary { --tw-gradient-to: var(--secondary); }
+        .text-agency-accent { color: var(--accent); }
+
+        /* --- Tema CLARO (por defecto): texto oscuro sobre fondos claros --- */
+        body { background-color: #f1f5f9; color: #1e293b; }
+        .surface { background-color: #ffffff; border-color: #e2e8f0; }
+        .concept-title { color: #0f172a; }
+        .concept-muted { color: #64748b; }
+        .row-hover:hover { background-color: #f1f5f9; } /* hover sutil, no blanco pleno */
+
+        /* --- Tema OSCURO --- */
+        html.dark body { background-color: #0b0f19; color: #e2e8f0; }
+        html.dark .surface { background-color: #111827; border-color: #1e293b; }
+        html.dark .concept-title { color: #f1f5f9; }
+        html.dark .concept-muted { color: #94a3b8; }
+        html.dark .row-hover:hover { background-color: #1a2234; } /* hover oscuro sutil */
+        html.dark .divide-slate-100 > * + * { border-color: #1e293b; }
+    </style>
+</head>
+<body class="h-full font-sans">
+
+    <!-- BARRA SUPERIOR DEL PORTAL -->
+    <header class="surface h-16 border-b flex items-center justify-between px-6 sticky top-0 z-10">
+        <div class="flex items-center gap-3">
+            {% if brand.logo_path %}
+                <img src="/{{ brand.logo_path }}" alt="{{ brand.agency_name }}" class="max-h-9 max-w-[160px] object-contain">
+            {% else %}
+                <div class="w-9 h-9 rounded-lg bg-agency-primary flex items-center justify-center font-bold text-white text-lg">
+                    {{ brand.agency_name[:1] }}
+                </div>
+                <span class="concept-title font-bold text-base tracking-tight">{{ brand.agency_name }}</span>
+            {% endif %}
+        </div>
+
+        <div class="flex items-center gap-3">
+            <button id="theme-toggle-btn" type="button" title="Alternar Tema"
+                class="concept-muted p-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:opacity-80 transition text-xs font-medium">
+                Tema
+            </button>
+            <div class="hidden sm:block text-right">
+                <p class="concept-title text-sm font-semibold leading-tight">{{ client.business_name }}</p>
+                <p class="concept-muted text-[11px] leading-tight">{{ current_user.email }}</p>
+            </div>
+            <a href="/portal/logout" class="concept-muted hover:text-red-500 p-2 rounded transition" title="Cerrar Sesión">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            </a>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto p-6 md:p-8 space-y-6">
+
+        <!-- TARJETA DE BIENVENIDA -->
+        <div class="bg-gradient-to-r from-agency-primary to-agency-secondary rounded-2xl p-6 md:p-8 text-white shadow-lg">
+            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-white/20 mb-2">
+                Portal del Cliente
+            </span>
+            <h1 class="text-2xl md:text-3xl font-bold">Hola, {{ client.contact_name }}</h1>
+            <p class="text-sm text-white/80 mt-1">
+                Bienvenido a tu espacio exclusivo de <strong>{{ client.business_name }}</strong>. Aquí encontrarás todos tus reportes de desempeño emitidos por {{ brand.agency_name }}.
+            </p>
+        </div>
+
+        <!-- RESUMEN -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="surface p-5 rounded-xl border shadow-sm">
+                <span class="concept-muted text-xs font-semibold uppercase">Reportes Disponibles</span>
+                <p class="concept-title text-3xl font-bold mt-1">{{ reports|length }}</p>
+            </div>
+            <div class="surface p-5 rounded-xl border shadow-sm">
+                <span class="concept-muted text-xs font-semibold uppercase">Estado de tu Cuenta</span>
+                <p class="text-lg font-bold mt-1">
+                    {% if client.status == 'activo' %}
+                        <span class="text-emerald-600">Activa</span>
+                    {% elif client.status == 'pausado' %}
+                        <span class="text-amber-600">En Pausa</span>
+                    {% else %}
+                        <span class="text-rose-600">Inactiva</span>
+                    {% endif %}
+                </p>
+            </div>
+            <div class="surface p-5 rounded-xl border shadow-sm">
+                <span class="concept-muted text-xs font-semibold uppercase">Tu Gestor Asignado</span>
+                <p class="concept-title text-base font-bold mt-1">
+                    {{ client.assigned_employee.name if client.assigned_employee else 'Equipo de la Agencia' }}
+                </p>
+                {% if client.assigned_employee %}
+                <p class="concept-muted text-xs">{{ client.assigned_employee.email }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- LISTA DE REPORTES -->
+        <div class="surface rounded-xl border shadow-sm overflow-hidden">
+            <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+                <h3 class="concept-title text-base font-bold">Mis Reportes de Desempeño</h3>
+                <span class="concept-muted text-xs">{{ reports|length }} disponible(s)</span>
+            </div>
+            <div class="divide-y divide-slate-100">
+                {% if reports %}
+                    {% for rep in reports %}
+                    <div class="p-4 flex items-center justify-between row-hover transition">
+                        <div class="min-w-0">
+                            <p class="concept-title font-semibold text-sm truncate">{{ rep.title }}</p>
+                            <p class="concept-muted text-xs">
+                                Período: {{ rep.period_month }}/{{ rep.period_year }}
+                                {% if rep.created_at %}&bull; {{ rep.created_at.strftime('%d/%m/%Y') }}{% endif %}
+                            </p>
+                        </div>
+                        <a href="/portal/reportes/{{ rep.id }}"
+                            class="flex-shrink-0 bg-agency-primary hover:opacity-90 text-white font-semibold px-4 py-2 rounded-lg text-xs transition shadow">
+                            Ver Reporte
+                        </a>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="p-12 text-center concept-muted text-sm">
+                        <svg class="w-12 h-12 mx-auto mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        Aún no tienes reportes disponibles.<br>Tus reportes aparecerán aquí en cuanto tu agencia los publique.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <p class="text-center concept-muted text-[11px] pt-2">
+            Portal seguro de {{ brand.agency_name }} &bull; Documentos confidenciales
+        </p>
+    </main>
+
+    <script>
+        const btn = document.getElementById('theme-toggle-btn');
+        btn.addEventListener('click', function() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('agency_theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('agency_theme', 'dark');
+            }
+        });
+    </script>
+</body>
+</html>
