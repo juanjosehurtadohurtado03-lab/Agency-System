@@ -57,6 +57,37 @@
         </div>
     </div>
 
+    <!-- MÉTRICAS ESTRUCTURADAS -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+            <span class="text-[11px] font-semibold text-slate-400 uppercase">Inversión</span>
+            <p class="text-xl font-bold text-slate-900 mt-1">${{ "{:,.2f}".format(report.investment or 0) }}</p>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+            <span class="text-[11px] font-semibold text-slate-400 uppercase">Leads / Resultados</span>
+            <p class="text-xl font-bold text-slate-900 mt-1">{{ report.leads or 0 }}</p>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+            <span class="text-[11px] font-semibold text-slate-400 uppercase">Costo por Lead</span>
+            <p class="text-xl font-bold text-slate-900 mt-1">
+                ${{ "{:,.2f}".format((report.investment or 0) / report.leads) if report.leads else "0.00" }}
+            </p>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+            <span class="text-[11px] font-semibold text-slate-400 uppercase">Estado Campaña</span>
+            {% set cs = (report.campaign_status or 'activa') %}
+            <p class="mt-1">
+                <span class="inline-block px-2.5 py-1 rounded-full text-xs font-semibold
+                    {{ 'bg-emerald-100 text-emerald-800' if cs == 'activa' else
+                       'bg-amber-100 text-amber-800' if cs == 'optimizacion' else
+                       'bg-slate-100 text-slate-700' if cs == 'pausada' else
+                       'bg-blue-100 text-blue-800' }}">
+                    {{ {'activa':'Activa','optimizacion':'En Optimización','pausada':'Pausada','finalizada':'Finalizada'}.get(cs, cs) }}
+                </span>
+            </p>
+        </div>
+    </div>
+
     <!-- ESTADO DE LA INTEGRACIÓN DE ENVÍOS -->
     {% if not email_config or not email_config.is_active %}
     <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-800 flex items-center justify-between">

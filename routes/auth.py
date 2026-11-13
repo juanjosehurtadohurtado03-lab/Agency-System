@@ -18,7 +18,7 @@ from database import get_db
 from models.admin import Admin
 from models.brand import BrandConfig
 from models.employee import Employee
-from routes.deps import get_active_brand, get_current_user_optional, require_admin
+from routes.deps import get_active_brand, get_panel_user_optional, require_admin
 from services.auth_service import (
     create_access_token,
     hash_password,
@@ -182,7 +182,7 @@ async def admin_login_post(
 @router.get("/admin/change-credentials", response_class=HTMLResponse)
 async def change_credentials_page(
     request: Request,
-    current_user: Optional[dict] = Depends(get_current_user_optional),
+    current_user: Optional[dict] = Depends(get_panel_user_optional),
     brand: BrandConfig = Depends(get_active_brand),
 ):
     """Pantalla obligatoria para cambiar usuario y contraseña inicial."""
@@ -206,7 +206,7 @@ async def change_credentials_post(
     new_username: str = Form(...),
     new_password: str = Form(...),
     confirm_password: str = Form(...),
-    current_user: Optional[dict] = Depends(get_current_user_optional),
+    current_user: Optional[dict] = Depends(get_panel_user_optional),
     db: AsyncSession = Depends(get_db),
     brand: BrandConfig = Depends(get_active_brand),
 ):

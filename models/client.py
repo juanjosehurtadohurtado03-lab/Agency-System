@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from models.employee import Employee
     from models.report import Report
     from models.financial import FinancialRecord
+    from models.task import Task
 
 
 class Client(Base):
@@ -108,6 +109,14 @@ class Client(Base):
         "FinancialRecord",
         back_populates="client",
         lazy="selectin",
+    )
+
+    tasks: Mapped[List["Task"]] = relationship(
+        "Task",
+        back_populates="client",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+        order_by="Task.is_done, Task.created_at.desc()",
     )
 
     def __repr__(self) -> str:

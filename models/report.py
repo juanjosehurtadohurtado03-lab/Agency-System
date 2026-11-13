@@ -7,7 +7,7 @@ su estado de envío, período al que corresponde y ruta del archivo PDF generado
 
 from datetime import datetime
 from typing import TYPE_CHECKING
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base
@@ -59,6 +59,14 @@ class Report(Base):
 
     # Métricas consolidadas en formato JSON serializado (leads, clics, ventas, ROI, etc.)
     metrics_data: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # --- Campos estructurados básicos de desempeño ---
+    # Inversión publicitaria del período (semana/mes) en la moneda de la agencia
+    investment: Mapped[float | None] = mapped_column(Float, nullable=True, default=0.0)
+    # Resultados obtenidos: leads / contactos / conversiones
+    leads: Mapped[int | None] = mapped_column(Integer, nullable=True, default=0)
+    # Estado de la campaña: activa | optimizacion | pausada | finalizada
+    campaign_status: Mapped[str | None] = mapped_column(String(30), nullable=True, default="activa")
 
     # Fecha en que se realizó el envío automático
     sent_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)

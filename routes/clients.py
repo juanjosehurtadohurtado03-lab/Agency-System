@@ -23,6 +23,7 @@ from models.report import Report
 from routes.deps import get_active_brand, require_admin, require_user
 from services.auth_service import generate_client_code
 from services.email_service import EmailService
+from models.task import Task
 from templates_engine import templates
 
 router = APIRouter(prefix="/clientes", tags=["Clientes"])
@@ -366,3 +367,75 @@ async def delete_client(
     client.status = "inactivo"
     await db.commit()
     return RedirectResponse(url="/clientes", status_code=status.HTTP_303_SEE_OTHER)
+
+
+# ==============================================================================
+# CHECKLIST OPERATIVO (TAREAS SEMANALES POR CLIENTE)
+# ==============================================================================
+
+@router.post("/{client_id}/tareas")
+async def add_task(
+    client_id: int,
+    title: str = Form(...),
+    notes: Optional[str] = Form(None),
+    current_user: Dict[str, Any] = Depends(require_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Añade una tarea rápida al checklist del cliente."""
+    result = await db.execute(select(Client).where(Client.id == client_id))
+    client = result.scalar_one_or_none()
+    if not client:
+        raise HTTPException(status_code=404, detail="Cliente no encontrado.")
+    if current_user["role"] != "admin" and client.assigned_employee_id != current_user["id"]:
+        raise HTTPException(status_code=403, detail="No tienes acceso a este cliente.")
+
+    if title.strip():
+        task = Task(
+            client_id=client_id,
+            title=title.strip(),
+            notes=notes.strip() if notes else None,
+        )
+        db.add(task)
+        await db.commit()
+
+    return RedirectResponse(url=f"/clientes/{client_id}#tareas", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@router.post("/{client_id}/tareas/{task_id}/toggle")
+async def toggle_task(
+    client_id: int,
+    task_id: int,
+    current_user: Dict[str, Any] = Depends(require_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Marca/desmarca una tarea como completada."""
+    result = await db.execute(
+        select(Task).where(Task.id == task_id, Task.client_id == client_id)
+    )
+    task = result.scalar_one_or_none()
+    if not task:
+        raise HTTPException(status_code=404, detail="Tarea no encontrada.")
+
+    task.is_done = not task.is_done
+    await db.commit()
+    return RedirectResponse(url=f"/clientes/{client_id}#tareas", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@router.post("/{client_id}/tareas/{task_id}/eliminar")
+async def delete_task(
+    client_id: int,
+    task_id: int,
+    current_user: Dict[str, Any] = Depends(require_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Elimina una tarea del checklist."""
+    result = await db.execute(
+        select(Task).where(Task.id == task_id, Task.client_id == client_id)
+    )
+    task = result.scalar_one_or_none()
+    if not task:
+        raise HTTPException(status_code=404, detail="Tarea no encontrada.")
+
+    await db.delete(task)
+    await db.commit()
+    return RedirectResponse(url=f"/clientes/{client_id}#tareas", status_code=status.HTTP_303_SEE_OTHER)

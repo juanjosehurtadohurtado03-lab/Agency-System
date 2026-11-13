@@ -12,6 +12,20 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 BASE_DIR = Path(__file__).resolve().parent
 
 
+# ==============================================================================
+# METADATOS DEL PRODUCTO (AgencyOrder)
+# El nombre de marca de la agencia (configurable en "Marca y PDFs") es INDEPENDIENTE
+# de estos metadatos: estos identifican al PRODUCTO de software y a su autor.
+# ==============================================================================
+PRODUCT_NAME = "AgencyOrder"
+PRODUCT_VERSION = "1.0.0"
+DEVELOPER_NAME = "Juan José Hurtado Hurtado"
+DEVELOPER_PHONE = "+58 04141884628"
+COPYRIGHT_YEAR = "2026"
+COPYRIGHT_NOTICE = f"© {COPYRIGHT_YEAR} {DEVELOPER_NAME}. Todos los derechos reservados."
+PRODUCT_FOOTER = f"{PRODUCT_NAME} v{PRODUCT_VERSION} — Desarrollado por {DEVELOPER_NAME} ({DEVELOPER_PHONE})"
+
+
 class Settings(BaseSettings):
     """
     Clase que define todas las configuraciones del sistema SaaS.

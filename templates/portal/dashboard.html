@@ -74,7 +74,8 @@
     <main class="max-w-5xl mx-auto p-6 md:p-8 space-y-6">
 
         <!-- TARJETA DE BIENVENIDA -->
-        <div class="bg-gradient-to-r from-agency-primary to-agency-secondary rounded-2xl p-6 md:p-8 text-white shadow-lg">
+        <div class="rounded-2xl p-6 md:p-8 text-white shadow-lg"
+            style="background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);">
             <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-white/20 mb-2">
                 Portal del Cliente
             </span>
@@ -147,6 +148,9 @@
 
         <p class="text-center concept-muted text-[11px] pt-2">
             Portal seguro de {{ brand.agency_name }} &bull; Documentos confidenciales
+        </p>
+        <p class="text-center text-[10px] pt-1 opacity-60" style="color:#94a3b8;">
+            {{ product_name }} v{{ product_version }} &bull; {{ copyright_notice }}
         </p>
     </main>
 

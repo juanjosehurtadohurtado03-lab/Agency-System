@@ -19,7 +19,7 @@ from database import get_db
 from models.brand import BrandConfig
 from models.client import Client
 from models.report import Report
-from routes.deps import get_active_brand, get_current_user_optional, require_client
+from routes.deps import get_active_brand, require_client
 from services.auth_service import create_access_token
 from templates_engine import templates
 
@@ -106,7 +106,7 @@ async def client_login_post(
 
     response = RedirectResponse(url="/portal", status_code=status.HTTP_303_SEE_OTHER)
     response.set_cookie(
-        key="access_token",
+        key="portal_token",
         value=token,
         httponly=True,
         max_age=60 * 60 * 12,  # 12 horas
@@ -197,8 +197,8 @@ async def client_view_report(
 
 @router.get("/logout")
 async def client_logout():
-    """Limpia la sesión del cliente."""
+    """Limpia la sesión del cliente (solo la cookie del portal, no la del panel)."""
     response = RedirectResponse(url="/portal/login", status_code=status.HTTP_303_SEE_OTHER)
-    response.delete_cookie(key="access_token")
+    response.delete_cookie(key="portal_token")
     return response
 

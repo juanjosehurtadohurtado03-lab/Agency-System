@@ -13,6 +13,7 @@ from models.email_config import EmailConfig
 from models.employee import Employee
 from models.financial import FinancialRecord
 from models.report import Report
+from models.task import Task
 
 __all__ = [
     "Base",
@@ -20,6 +21,7 @@ __all__ = [
     "Employee",
     "Client",
     "Report",
+    "Task",
     "BrandConfig",
     "EmailConfig",
     "FinancialRecord",

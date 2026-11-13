@@ -111,6 +111,9 @@ async def create_report_post(
     description: Optional[str] = Form(None),
     period_month: int = Form(...),
     period_year: int = Form(...),
+    investment: Optional[float] = Form(0.0),
+    leads: Optional[int] = Form(0),
+    campaign_status: Optional[str] = Form("activa"),
     current_user: Dict[str, Any] = Depends(require_user),
     db: AsyncSession = Depends(get_db),
     brand: BrandConfig = Depends(get_active_brand),
@@ -134,6 +137,9 @@ async def create_report_post(
         description=description.strip() if description else None,
         period_month=period_month,
         period_year=period_year,
+        investment=investment or 0.0,
+        leads=leads or 0,
+        campaign_status=(campaign_status or "activa").strip().lower(),
         status="borrador",
     )
     db.add(report)

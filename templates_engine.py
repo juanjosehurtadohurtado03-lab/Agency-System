@@ -8,7 +8,15 @@ y asegura la resolución absoluta de la carpeta templates/.
 
 from pathlib import Path
 from fastapi.templating import Jinja2Templates
-from config import BASE_DIR
+from config import (
+    BASE_DIR,
+    PRODUCT_NAME,
+    PRODUCT_VERSION,
+    DEVELOPER_NAME,
+    DEVELOPER_PHONE,
+    COPYRIGHT_NOTICE,
+    PRODUCT_FOOTER,
+)
 
 
 class SafeJinja2Templates(Jinja2Templates):
@@ -36,4 +44,15 @@ class SafeJinja2Templates(Jinja2Templates):
 
 # Instancia singleton configurada con ruta absoluta a templates
 templates = SafeJinja2Templates(directory=str(BASE_DIR / "templates"))
+
+# Metadatos del producto disponibles globalmente en todas las plantillas.
+# Se acceden como {{ product_name }}, {{ copyright_notice }}, etc.
+templates.env.globals.update(
+    product_name=PRODUCT_NAME,
+    product_version=PRODUCT_VERSION,
+    developer_name=DEVELOPER_NAME,
+    developer_phone=DEVELOPER_PHONE,
+    copyright_notice=COPYRIGHT_NOTICE,
+    product_footer=PRODUCT_FOOTER,
+)
 

@@ -19,23 +19,8 @@ from models.employee import Employee
 from services.auth_service import decode_access_token
 
 
-async def get_current_user_optional(
-    request: Request,
-    db: AsyncSession = Depends(get_db),
-) -> Optional[Dict[str, Any]]:
-    """
-    Extrae el token JWT desde la cookie 'access_token' o del encabezado 'Authorization'.
-    Si el token es válido, busca en la BD y retorna los datos del usuario.
-    Si no hay token o es inválido, devuelve None (sin lanzar excepción).
-    """
-    token = request.cookies.get("access_token")
-
-    # Si no está en cookie, buscar en Authorization: Bearer <token>
-    if not token:
-        auth_header = request.headers.get("Authorization")
-        if auth_header and auth_header.startswith("Bearer "):
-            token = auth_header.split(" ")[1]
-
+async def _resolve_user_from_token(token: Optional[str], db: AsyncSession) -> Optional[Dict[str, Any]]:
+    """Valida un token JWT y devuelve el diccionario de usuario (o None)."""
     if not token:
         return None
 
@@ -49,7 +34,6 @@ async def get_current_user_optional(
     if not user_id or not role:
         return None
 
-    # Verificar que el usuario exista en la BD y esté activo
     if role == "admin":
         result = await db.execute(select(Admin).where(Admin.id == int(user_id)))
         admin = result.scalar_one_or_none()
@@ -96,9 +80,61 @@ async def get_current_user_optional(
     return None
 
 
+def _bearer_token(request: Request) -> Optional[str]:
+    """Devuelve el token del encabezado Authorization: Bearer si existe."""
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        return auth_header.split(" ")[1]
+    return None
+
+
+async def get_panel_user_optional(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> Optional[Dict[str, Any]]:
+    """
+    Usuario de la sesión del PANEL INTERNO (dueño/empleado).
+    Prioriza la cookie 'access_token'. Si esa cookie falta, NO recurre al
+    token del portal para no mezclar sesiones entre pestañas.
+    """
+    token = request.cookies.get("access_token") or _bearer_token(request)
+    return await _resolve_user_from_token(token, db)
+
+
+async def get_portal_user_optional(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> Optional[Dict[str, Any]]:
+    """
+    Usuario de la sesión del PORTAL DEL CLIENTE.
+    Usa exclusivamente la cookie 'portal_token' (aislada del panel).
+    """
+    token = request.cookies.get("portal_token")
+    if not token:
+        return None
+    user = await _resolve_user_from_token(token, db)
+    # Solo aceptamos clientes por esta vía
+    if user and user.get("role") == "cliente":
+        return user
+    return None
+
+
+async def get_current_user_optional(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> Optional[Dict[str, Any]]:
+    """
+    Resolución genérica (compatibilidad). Prioriza el token del portal y luego
+    el del panel. Para lógica estricta usa get_panel_user_optional /
+    get_portal_user_optional.
+    """
+    token = request.cookies.get("portal_token") or request.cookies.get("access_token") or _bearer_token(request)
+    return await _resolve_user_from_token(token, db)
+
+
 async def require_user(
     request: Request,
-    current_user: Optional[Dict[str, Any]] = Depends(get_current_user_optional),
+    current_user: Optional[Dict[str, Any]] = Depends(get_panel_user_optional),
 ) -> Dict[str, Any]:
     """Exige que el usuario sea miembro del equipo (Dueño o Empleado)."""
     if not current_user:
@@ -144,7 +180,7 @@ async def require_user(
 
 async def require_client(
     request: Request,
-    current_user: Optional[Dict[str, Any]] = Depends(get_current_user_optional),
+    current_user: Optional[Dict[str, Any]] = Depends(get_portal_user_optional),
 ) -> Dict[str, Any]:
     """Exige que el usuario autenticado sea un cliente en su portal."""
     if not current_user or current_user.get("role") != "cliente":

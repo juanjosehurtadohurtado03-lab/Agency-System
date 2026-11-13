@@ -89,6 +89,26 @@
                 <p class="concept-muted text-sm whitespace-pre-line">{{ report.description }}</p>
             </div>
             {% endif %}
+
+            {% set cs = (report.campaign_status or 'activa') %}
+            <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div class="surface-alt rounded-lg border p-3">
+                    <p class="concept-muted text-[10px] uppercase font-semibold">Inversión</p>
+                    <p class="concept-title text-lg font-bold">${{ "{:,.2f}".format(report.investment or 0) }}</p>
+                </div>
+                <div class="surface-alt rounded-lg border p-3">
+                    <p class="concept-muted text-[10px] uppercase font-semibold">Leads / Resultados</p>
+                    <p class="concept-title text-lg font-bold">{{ report.leads or 0 }}</p>
+                </div>
+                <div class="surface-alt rounded-lg border p-3">
+                    <p class="concept-muted text-[10px] uppercase font-semibold">Costo por Lead</p>
+                    <p class="concept-title text-lg font-bold">${{ "{:,.2f}".format((report.investment or 0) / report.leads) if report.leads else "0.00" }}</p>
+                </div>
+                <div class="surface-alt rounded-lg border p-3">
+                    <p class="concept-muted text-[10px] uppercase font-semibold">Estado Campaña</p>
+                    <p class="concept-title text-sm font-bold">{{ {'activa':'Activa','optimizacion':'En Optimización','pausada':'Pausada','finalizada':'Finalizada'}.get(cs, cs) }}</p>
+                </div>
+            </div>
         </div>
 
         <!-- PREVISUALIZACIÓN DEL DOCUMENTO -->

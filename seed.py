@@ -152,6 +152,9 @@ async def seed():
                 description="Resultados sobresalientes durante el período:\n- 54 Nuevas citas de valoración agendadas.\n- Retorno de inversión en pauta publicitaria (ROAS): 3.8x\n- Costo por adquisición reducido en un 22% gracias a la optimización de segmentación local.",
                 period_month=10,
                 period_year=2026,
+                investment=500.0,
+                leads=34,
+                campaign_status="activa",
                 status="enviado",
                 sent_at=datetime.utcnow(),
             )

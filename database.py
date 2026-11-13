@@ -100,6 +100,11 @@ def _run_lightweight_migrations(sync_conn) -> None:
             "admin_login_color": "VARCHAR(30) DEFAULT 'rgb(171, 35, 48)' NOT NULL",
             "portal_custom_domain": "VARCHAR(150)",
         },
+        "reports": {
+            "investment": "FLOAT DEFAULT 0.0",
+            "leads": "INTEGER DEFAULT 0",
+            "campaign_status": "VARCHAR(30) DEFAULT 'activa'",
+        },
     }
 
     for table_name, columns in migrations.items():

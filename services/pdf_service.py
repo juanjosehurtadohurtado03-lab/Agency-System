@@ -80,6 +80,40 @@ class PDFService:
         filename = f"reporte_{client.id}_{report.period_year}_{report.period_month}_{report.id}.html"
         file_path = cls.REPORTS_DIR / filename
 
+        # --- Datos estructurados de desempeño ---
+        campaign_labels = {
+            "activa": "Activa",
+            "optimizacion": "En Optimización",
+            "pausada": "Pausada",
+            "finalizada": "Finalizada",
+        }
+        campaign_label = campaign_labels.get((report.campaign_status or "activa").lower(), report.campaign_status or "—")
+        investment = report.investment or 0.0
+        leads = report.leads or 0
+        cost_per_lead = (investment / leads) if leads else 0.0
+
+        metrics_section = f"""
+        <div class="section-title">Resultados del Período</div>
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <span class="metric-label">Inversión</span>
+                <span class="metric-value">${investment:,.2f}</span>
+            </div>
+            <div class="metric-card">
+                <span class="metric-label">Leads / Resultados</span>
+                <span class="metric-value">{leads}</span>
+            </div>
+            <div class="metric-card">
+                <span class="metric-label">Costo por Lead</span>
+                <span class="metric-value">${cost_per_lead:,.2f}</span>
+            </div>
+            <div class="metric-card">
+                <span class="metric-label">Estado de Campaña</span>
+                <span class="metric-value">{campaign_label}</span>
+            </div>
+        </div>
+        """
+
         html_content = f"""<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -162,6 +196,33 @@ class PDFService:
             font-size: 15px;
             white-space: pre-line;
         }}
+        .metrics-grid {{
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+            margin-bottom: 8px;
+        }}
+        .metric-card {{
+            background: #F9FAFB;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }}
+        .metric-label {{
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #6B7280;
+            font-weight: 600;
+        }}
+        .metric-value {{
+            font-size: 22px;
+            font-weight: 700;
+            color: {primary_color};
+        }}
         .footer-bar {{
             margin-top: 40px;
             padding-top: 20px;
@@ -225,6 +286,8 @@ class PDFService:
         </div>
 
         <!-- Cuerpo del Reporte -->
+        {metrics_section}
+
         <div class="section-title">Resumen Ejecutivo y Desempeño</div>
         <div class="description-box">
             {report.description or 'No se agregaron comentarios adicionales para este período.'}
@@ -241,5 +304,14 @@ class PDFService:
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(html_content)
 
-        return f"static/uploads/reports/{filename}"
+        # Generación de PDF real con WeasyPrint (con fallback elegante si no está disponible)
+        pdf_filename = f"reporte_{client.id}_{report.period_year}_{report.period_month}_{report.id}.pdf"
+        pdf_path = cls.REPORTS_DIR / pdf_filename
+        try:
+            from weasyprint import HTML as _WeasyHTML
+            _WeasyHTML(string=html_content, base_url=str(Path("static/uploads/reports")).replace("reports", "")).write_pdf(str(pdf_path))
+            return f"static/uploads/reports/{pdf_filename}"
+        except Exception:
+            # Si WeasyPrint no está instalado o falla, devolvemos el HTML (imprimible)
+            return f"static/uploads/reports/{filename}"
 

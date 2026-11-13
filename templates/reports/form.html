@@ -64,6 +64,36 @@
                 </div>
             </div>
 
+            <!-- RESULTADOS ESTRUCTURADOS -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 uppercase mb-2">Resultados del Período</label>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-[11px] text-slate-500 mb-1">Inversión (semana / mes)</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-2 text-slate-400 text-sm">$</span>
+                            <input type="number" step="0.01" min="0" name="investment" value="0"
+                                class="w-full pl-7 pr-3.5 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-slate-500 mb-1">Leads / Resultados obtenidos</label>
+                        <input type="number" min="0" name="leads" value="0"
+                            class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-slate-500 mb-1">Estado de la Campaña</label>
+                        <select name="campaign_status" class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500 bg-white">
+                            <option value="activa">Activa</option>
+                            <option value="optimizacion">En Optimización</option>
+                            <option value="pausada">Pausada</option>
+                            <option value="finalizada">Finalizada</option>
+                        </select>
+                    </div>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-1">Estos datos se mostrarán como tarjetas de métricas en el PDF del cliente.</p>
+            </div>
+
             <!-- DESCRIPCIÓN Y RESUMEN EJECUTIVO -->
             <div>
                 <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Resumen Ejecutivo y Métricas de Desempeño</label>
